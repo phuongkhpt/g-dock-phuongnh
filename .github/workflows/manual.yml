@@ -39,7 +39,7 @@ env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
   FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: r619ac.config
+  CONFIG_FILE: .config
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
   SSH_ACTIONS: false
@@ -48,7 +48,7 @@ env:
   UPLOAD_COWTRANSFER: false
   UPLOAD_WETRANSFER: true
   UPLOAD_RELEASE: true
-  TZ: Asia/Shanghai
+  TZ: Asia/Ho_Chi_Minh
 
 jobs:
   build:
@@ -75,28 +75,28 @@ jobs:
       working-directory: /workdir
       run: |
         df -hT $PWD
-        git clone $REPO_URL -b $REPO_BRANCH openwrt
-        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+        git clone $REPO_URL -b $REPO_BRANCH x-wrt
+        ln -sf /workdir/x-wrt $GITHUB_WORKSPACE/x-wrt
 
     - name: Load custom feeds
       run: |
-        [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
+        [ -e $FEEDS_CONF ] && mv $FEEDS_CONF x-wrt/feeds.conf.default
         chmod +x $DIY_P1_SH
         cd openwrt
         $GITHUB_WORKSPACE/$DIY_P1_SH
 
     - name: Update feeds
-      run: cd openwrt && ./scripts/feeds update -a
+      run: cd x-wrt && ./scripts/feeds update -a
 
     - name: Install feeds
-      run: cd openwrt && ./scripts/feeds install -a
+      run: cd x-wrt && ./scripts/feeds install -a
 
     - name: Load custom configuration
       run: |
         [ -e files ] && mv files openwrt/files
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE x-wrt/.config
         chmod +x $DIY_P2_SH
-        cd openwrt
+        cd x-wrt
         $GITHUB_WORKSPACE/$DIY_P2_SH
 
     - name: SSH connection to Actions
@@ -135,13 +135,13 @@ jobs:
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
         name: OpenWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
-        path: openwrt/bin
+        path: x-wrt/bin
 
     - name: Organize files
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
-        cd openwrt/bin/targets/*/*
+        cd x-wrt/bin/targets/*/*
         rm -rf packages
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "::set-output name=status::success"
